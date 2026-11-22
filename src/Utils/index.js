@@ -13,6 +13,8 @@ export * from './auth-utils.js';
 export * from './use-multi-file-auth-state.js';
 export * from './use-single-file-auth-state.js';
 export * from './use-sqlite-auth-state.js';
+export * from './node-sqlite-adapter.js';
+export * from './use-node-sqlite-auth-state.js';
 export * from './auth-store.js';
 export * from './use-postgres-auth-state.js';
 export * from './use-mysql-auth-state.js';

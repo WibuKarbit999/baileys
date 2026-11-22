@@ -101,7 +101,8 @@ Baru di sini? Ini seluruh library dalam satu pandangan. Tiap baris menaut ke bag
 - [Penyimpanan Sesi](#-penyimpanan-sesi)
   - [Multi-berkas (bawaan)](#multi-berkas-bawaan)
   - [Satu berkas](#satu-berkas)
-  - [SQLite](#sqlite)
+  - [SQLite Bawaan Node.js (tanpa dependensi)](#sqlite-bawaan-nodejs-tanpa-dependensi)
+  - [SQLite (`better-sqlite3`)](#sqlite-better-sqlite3)
   - [PostgreSQL, MySQL, MongoDB, Redis](#postgresql-mysql-mongodb-redis)
   - [NekoDB](#nekodb)
   - [Menyimpan Kunci Signal di Cache](#menyimpan-kunci-signal-di-cache)
@@ -535,7 +536,66 @@ import { useSingleFileAuthState } from 'baileys'
 const { state, saveCreds } = await useSingleFileAuthState('./session.json')
 ```
 
-### SQLite
+### SQLite Bawaan Node.js (tanpa dependensi)
+
+Pilihan tambahan bagi pengguna **Node.js 22.5+ / 24+** yang ingin menyimpan sesi WhatsApp (pengganti `creds.json` dan ribuan berkas JSON kecil) sekaligus memakai SQLite bawaan `node:sqlite` sebagai adaptor database bot — **tanpa perlu memasang `better-sqlite3`**. Pilihan JSON (`useMultiFileAuthState` / `useSingleFileAuthState`) dan `useSqliteAuthState` tetap ada dan tidak digantikan.
+
+#### Sesi WhatsApp dengan `useNodeSqliteAuthState`
+
+```js
+import makeWASocket, { useNodeSqliteAuthState } from 'baileys'
+
+const { state, saveCreds, clearAuth, close } = await useNodeSqliteAuthState('./session.db')
+
+const sock = makeWASocket({ auth: state })
+sock.ev.on('creds.update', saveCreds)
+```
+
+Satu berkas `.db` bisa menyimpan banyak akun WhatsApp sekaligus dengan memberi nama `session`:
+
+```js
+const { state, saveCreds, listSessions } = await useNodeSqliteAuthState({
+  dbPath: './sessions.db',
+  session: 'bot-utama',      // bawaan: 'default'
+  table: 'baileys_auth'      // bawaan: 'baileys_auth'
+})
+
+console.log(await listSessions()) // ['bot-utama']
+```
+
+Semua kunci dan kredensial disimpan dalam satu tabel terindeks (`session`, `type`, `id`, `value`, `updated_at`) dengan mode WAL dan transaksi `BEGIN IMMEDIATE`, sehingga penulisan banyak pre-key sekaligus tetap cepat dan aman dari korupsi berkas.
+
+#### Adaptor Database SQLite Bawaan (`createNodeSqliteAdapter`)
+
+Adaptor yang sama bisa dipakai langsung untuk kebutuhan database bot (user, grup, pengaturan, transaksi SQL, atau koleksi key-value JSON) dan dibagikan ke sesi WhatsApp dalam satu koneksi:
+
+```js
+import { createNodeSqliteAdapter, useNodeSqliteAuthState } from 'baileys'
+
+const db = await createNodeSqliteAdapter('./bot.db')
+
+// 1) Pakai koneksi yang sama untuk sesi WA
+const { state, saveCreds } = await useNodeSqliteAuthState({
+  adapter: db,
+  session: 'bot-1'
+})
+
+// 2) Pakai sebagai koleksi key-value JSON (mendukung Buffer otomatis)
+const users = db.collection('users')
+users.set('628123@s.whatsapp.net', { role: 'admin', premium: true })
+console.log(users.get('628123@s.whatsapp.net'))
+
+// 3) Atau jalankan query SQL & transaksi atomik langsung
+db.exec('CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY AUTOINCREMENT, msg TEXT)')
+db.transaction(() => {
+  db.run('INSERT INTO logs (msg) VALUES (?)', 'bot started')
+})
+console.log(db.all('SELECT * FROM logs'))
+```
+
+Kamu juga bisa menyerahkan instance `DatabaseSync` dari `node:sqlite` langsung lewat opsi `{ database }`. Saat memakai `{ adapter }` atau `{ database }` eksternal, `close()` pada auth state tidak akan menutup koneksi milikmu.
+
+### SQLite (`better-sqlite3`)
 
 Kunci disimpan di database sungguhan, jadi pembacaan bersamaan dan kumpulan kunci besar tetap cepat. Butuh `better-sqlite3` v11, v12, atau v13.
 
