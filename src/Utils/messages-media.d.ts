@@ -1,4 +1,5 @@
 /** generates all the keys required to encrypt/decrypt & sign a media message */
+export function normalizeMediaKeyBuffer(buffer: any): any;
 export function getMediaKeys(buffer: any, mediaType: any): Promise<{
     iv: any;
     cipherKey: any;

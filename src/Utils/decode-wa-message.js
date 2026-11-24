@@ -279,7 +279,7 @@ export const decryptMessageNode = (stanza, meId, meLid, repository, logger) => {
                             logger?.warn?.({ err, key: fullMessage.key }, 'could not read the verified business name, leaving it unset');
                         }
                     }
-                    if (tag === 'unavailable' && attrs.type === 'view_once') {
+                    if (tag === 'unavailable' && (attrs.type === 'view_once' || attrs.type === 'view_once_unavailable_fanout')) {
                         fullMessage.key.isViewOnce = true;
                     }
                     if (attrs.count && tag === 'enc') {

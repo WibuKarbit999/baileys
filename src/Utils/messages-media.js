@@ -81,7 +81,7 @@ export const getRawMediaUploadData = async (media, mediaType, logger) => {
     }
 };
 
-const normalizeMediaKeyBuffer = (buffer) => {
+export const normalizeMediaKeyBuffer = (buffer) => {
     if (!buffer) {
         return buffer;
     }
@@ -485,7 +485,13 @@ const AES_CHUNK_SIZE = 16;
 const toSmallestChunkSize = (num) => {
     return Math.floor(num / AES_CHUNK_SIZE) * AES_CHUNK_SIZE;
 };
-export const getUrlFromDirectPath = (directPath, host = DEF_MEDIA_HOST) => `https://${host}${directPath}`;
+export const getUrlFromDirectPath = (directPath, host = DEF_MEDIA_HOST) => {
+    if (/^https?:\/\//i.test(directPath)) {
+        return directPath;
+    }
+    const normalizedPath = directPath.startsWith('/') ? directPath : `/${directPath}`;
+    return `https://${host}${normalizedPath}`;
+};
 const extractHost = (url) => {
     if (!url)
         return undefined;
@@ -504,7 +510,15 @@ export const downloadContentFromMessage = async ({ mediaKey, directPath, url }, 
         throw new Boom('No valid media URL or directPath present in message', { statusCode: 400 });
     }
     const keys = await getMediaKeys(mediaKey, type);
-    return downloadEncryptedContent(downloadUrl, keys, opts);
+    try {
+        return await downloadEncryptedContent(downloadUrl, keys, opts);
+    }
+    catch (error) {
+        if (directPath && !opts.host && fallbackHost && fallbackHost !== DEF_MEDIA_HOST) {
+            return downloadEncryptedContent(getUrlFromDirectPath(directPath, DEF_MEDIA_HOST), keys, opts);
+        }
+        throw error;
+    }
 };
 
 export const downloadEncryptedContent = async (downloadUrl, { cipherKey, iv }, { startByte, endByte, options } = {}) => {
@@ -768,7 +782,11 @@ export const getWAUploadToServer = ({ customUploadHosts, fetchAgent, logger, opt
     };
 };
 const getMediaRetryKey = (mediaKey) => {
-    return hkdf(mediaKey, 32, { info: 'WhatsApp Media Retry Notification' });
+    const normalized = normalizeMediaKeyBuffer(mediaKey);
+    if (!normalized || (!Buffer.isBuffer(normalized) && !(normalized instanceof Uint8Array)) || normalized.length === 0) {
+        throw new Boom('Cannot derive media retry key from empty media key');
+    }
+    return hkdf(normalized, 32, { info: 'WhatsApp Media Retry Notification' });
 };
 
 export const encryptMediaRetryRequest = (key, mediaKey, meId) => {
