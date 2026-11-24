@@ -1,7 +1,7 @@
 {
   "name": "baileys",
   "version": "1.0.0",
-  "description": "Custom Baileys WhatsApp Multi-Device library with WA Web 1055751095 proto, integrated MessageBuilder, interactive messages, and carousel/native-flow helpers.",
+  "description": "Custom Baileys WhatsApp Multi-Device library with WA Web 1056020247 proto, integrated MessageBuilder, interactive messages, and carousel/native-flow helpers.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",

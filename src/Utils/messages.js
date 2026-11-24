@@ -2075,13 +2075,158 @@ export const aggregateMessageKeysNotFromMe = (keys) => {
     return Object.values(keyMap);
 };
 const REUPLOAD_REQUIRED_STATUS = [410, 404];
+const VIEW_ONCE_WRAPPER_KEYS = new Set([
+    'viewOnceMessage',
+    'viewOnceMessageV2',
+    'viewOnceMessageV2Extension'
+]);
+const VIEW_ONCE_MEDIA_KEYS = new Set([
+    'imageMessage',
+    'instantImageMessage',
+    'videoMessage',
+    'instantVideoMessage',
+    'ptvMessage',
+    'audioMessage'
+]);
+
+const hasNonEmptyMediaKey = (mediaKey) => {
+    if (!mediaKey) {
+        return false;
+    }
+    if (typeof mediaKey === 'string') {
+        return mediaKey.length > 0;
+    }
+    if (Buffer.isBuffer(mediaKey) || mediaKey instanceof Uint8Array || Array.isArray(mediaKey)) {
+        return mediaKey.length > 0;
+    }
+    if (typeof mediaKey === 'object') {
+        if (mediaKey.type === 'Buffer') {
+            if (Array.isArray(mediaKey.data) || typeof mediaKey.data === 'string') {
+                return mediaKey.data.length > 0;
+            }
+        }
+        const keys = Object.keys(mediaKey);
+        return keys.length > 0 && keys.every(k => /^\d+$/.test(k));
+    }
+    return false;
+};
+
+export const extractViewOnceMessage = (input) => {
+    if (!input || typeof input !== 'object') {
+        return {
+            isViewOnce: false,
+            type: undefined,
+            media: undefined,
+            content: undefined,
+            downloadable: false,
+            reason: 'not-view-once'
+        };
+    }
+
+    const hasWAMessageShape = 'key' in input && typeof input.key === 'object';
+    if (hasWAMessageShape && input.key?.isViewOnce && !input.message) {
+        return {
+            isViewOnce: true,
+            type: undefined,
+            media: undefined,
+            content: undefined,
+            downloadable: false,
+            reason: 'unavailable-fanout'
+        };
+    }
+
+    let current = hasWAMessageShape ? input.message : input;
+    let sawViewOnceWrapper = Boolean(hasWAMessageShape && input.key?.isViewOnce);
+
+    for (let i = 0; i < 5 && current && typeof current === 'object'; i++) {
+        let unwrapped;
+        for (const key of FUTURE_PROOF_MESSAGE_KEYS) {
+            const wrapper = current[key];
+            if (wrapper && typeof wrapper === 'object') {
+                if (VIEW_ONCE_WRAPPER_KEYS.has(key)) {
+                    sawViewOnceWrapper = true;
+                }
+                if (wrapper.message && typeof wrapper.message === 'object') {
+                    unwrapped = wrapper.message;
+                }
+                break;
+            }
+        }
+        if (!unwrapped) {
+            break;
+        }
+        current = unwrapped;
+    }
+
+    const content = current && typeof current === 'object' ? current : undefined;
+    const contentType = content ? getContentType(content) : undefined;
+    const isEmptyViewOnceWrapper = Boolean(contentType && VIEW_ONCE_WRAPPER_KEYS.has(contentType));
+    const type = isEmptyViewOnceWrapper ? undefined : contentType;
+    const media = type && content && typeof content[type] === 'object' ? content[type] : undefined;
+    const isViewOnce = sawViewOnceWrapper || Boolean(media?.viewOnce);
+
+    if (!isViewOnce) {
+        return {
+            isViewOnce: false,
+            type,
+            media,
+            content,
+            downloadable: false,
+            reason: 'not-view-once'
+        };
+    }
+
+    if (!type) {
+        return {
+            isViewOnce: true,
+            type: undefined,
+            media: undefined,
+            content,
+            downloadable: false,
+            reason: 'missing-media-credentials'
+        };
+    }
+
+    if (!VIEW_ONCE_MEDIA_KEYS.has(type)) {
+        return {
+            isViewOnce: true,
+            type,
+            media,
+            content,
+            downloadable: false,
+            reason: 'unsupported-media'
+        };
+    }
+
+    if (!media) {
+        return {
+            isViewOnce: true,
+            type,
+            media: undefined,
+            content,
+            downloadable: false,
+            reason: 'missing-media-credentials'
+        };
+    }
+
+    const hasCredentials = hasNonEmptyMediaKey(media.mediaKey) && Boolean(media.directPath || media.url);
+    return {
+        isViewOnce: true,
+        type,
+        media,
+        content,
+        downloadable: hasCredentials,
+        ...(hasCredentials ? {} : { reason: 'missing-media-credentials' })
+    };
+};
 
 export const downloadMediaMessage = async (message, type, options, ctx) => {
     const result = await downloadMsg().catch(async (error) => {
+        const statusCode = error?.output?.statusCode ?? error?.status ?? error?.response?.status;
         if (ctx &&
-            typeof error?.status === 'number' &&
-            REUPLOAD_REQUIRED_STATUS.includes(error.status)) {
-            ctx.logger.info({ key: message.key }, 'sending reupload media request...');
+            typeof statusCode === 'number' &&
+            REUPLOAD_REQUIRED_STATUS.includes(statusCode)) {
+            ctx.logger?.info?.({ key: message.key }, 'sending reupload media request...');
 
             message = await ctx.reuploadRequest(message);
             const result = await downloadMsg();
@@ -2098,11 +2243,13 @@ export const downloadMediaMessage = async (message, type, options, ctx) => {
         const contentType = getContentType(mContent);
         let mediaType = contentType?.replace('Message', '');
         const media = mContent[contentType];
-        if (!media || typeof media !== 'object' || (!('url' in media) && !('thumbnailDirectPath' in media))) {
+        const hasMediaLocation = Boolean(media && typeof media === 'object' && (media.url || media.directPath));
+        const hasThumbOnly = Boolean(!hasMediaLocation && media && typeof media === 'object' && media.thumbnailDirectPath);
+        if (!media || typeof media !== 'object' || (!hasMediaLocation && !hasThumbOnly)) {
             throw new Boom(`"${contentType}" message is not a media message`);
         }
         let download;
-        if ('thumbnailDirectPath' in media && !('url' in media)) {
+        if (hasThumbOnly) {
             download = {
                 directPath: media.thumbnailDirectPath,
                 mediaKey: media.mediaKey

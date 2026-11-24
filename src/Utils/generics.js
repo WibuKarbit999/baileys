@@ -1,7 +1,7 @@
 import { Boom } from '@hapi/boom';
 import { createHash, randomBytes, randomFillSync } from 'crypto';
 import { proto } from '../../WAProto/index.js';
-const baileysVersion = [2, 3000, 1055751095];
+const baileysVersion = [2, 3000, 1056020247];
 import { DisconnectReason } from '../Types/index.js';
 import { getAllBinaryNodeChildren } from '../WABinary/index.js';
 import { sha256 } from './crypto.js';

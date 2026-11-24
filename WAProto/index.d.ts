@@ -4367,6 +4367,7 @@ export namespace proto {
         isWorkGroup?: (boolean|null);
         nonE2EeType?: (number|null);
         contactAccountEncryptionAttestationType?: (proto.NonE2EEAttestation.AccountType|null);
+        unreadReplyToMyMessageCount?: (number|null);
     }
 
     class Conversation implements IConversation {
@@ -4440,6 +4441,7 @@ export namespace proto {
         public isWorkGroup?: (boolean|null);
         public nonE2EeType?: (number|null);
         public contactAccountEncryptionAttestationType?: (proto.NonE2EEAttestation.AccountType|null);
+        public unreadReplyToMyMessageCount?: (number|null);
         public static create(properties?: proto.IConversation): proto.Conversation;
         public static encode(m: proto.IConversation, w?: $protobuf.Writer): $protobuf.Writer;
         public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): proto.Conversation;

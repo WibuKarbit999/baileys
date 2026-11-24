@@ -81,12 +81,50 @@ export const getRawMediaUploadData = async (media, mediaType, logger) => {
     }
 };
 
+const normalizeMediaKeyBuffer = (buffer) => {
+    if (!buffer) {
+        return buffer;
+    }
+    if (typeof buffer === 'string') {
+        return Buffer.from(buffer.replace('data:;base64,', ''), 'base64');
+    }
+    if (Buffer.isBuffer(buffer)) {
+        return buffer;
+    }
+    if (buffer instanceof Uint8Array) {
+        return Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    }
+    if (Array.isArray(buffer)) {
+        return Buffer.from(buffer);
+    }
+    if (typeof buffer === 'object') {
+        if (buffer.type === 'Buffer') {
+            if (Array.isArray(buffer.data)) {
+                return Buffer.from(buffer.data);
+            }
+            if (typeof buffer.data === 'string') {
+                return Buffer.from(buffer.data, 'base64');
+            }
+        }
+        const keys = Object.keys(buffer);
+        if (keys.length > 0 && keys.every(k => /^\d+$/.test(k))) {
+            keys.sort((a, b) => Number(a) - Number(b));
+            const values = keys.map(k => buffer[k]);
+            if (values.every(v => typeof v === 'number')) {
+                return Buffer.from(values);
+            }
+        }
+    }
+    return buffer;
+};
+
 export async function getMediaKeys(buffer, mediaType) {
     if (!buffer) {
         throw new Boom('Cannot derive from empty media key');
     }
-    if (typeof buffer === 'string') {
-        buffer = Buffer.from(buffer.replace('data:;base64,', ''), 'base64');
+    buffer = normalizeMediaKeyBuffer(buffer);
+    if (!buffer || (!Buffer.isBuffer(buffer) && !(buffer instanceof Uint8Array)) || buffer.length === 0) {
+        throw new Boom('Cannot derive from empty media key');
     }
 
     const expandedMediaKey = hkdf(buffer, 112, { info: hkdfInfoKey(mediaType) });

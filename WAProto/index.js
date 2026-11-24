@@ -30111,6 +30111,12 @@ export const proto = $root.proto = (() => {
             set: $util.oneOfSetter($oneOfFields)
         });
 
+        Conversation.prototype.unreadReplyToMyMessageCount = null;
+        Object.defineProperty(Conversation.prototype, "_unreadReplyToMyMessageCount", {
+            get: $util.oneOfGetter($oneOfFields = ["unreadReplyToMyMessageCount"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
         Conversation.create = function create(properties) {
             return new Conversation(properties);
         };
@@ -30262,6 +30268,8 @@ export const proto = $root.proto = (() => {
                 w.uint32(544).int32(m.nonE2EeType);
             if (m.contactAccountEncryptionAttestationType != null && Object.hasOwnProperty.call(m, "contactAccountEncryptionAttestationType"))
                 w.uint32(552).int32(m.contactAccountEncryptionAttestationType);
+            if (m.unreadReplyToMyMessageCount != null && Object.hasOwnProperty.call(m, "unreadReplyToMyMessageCount"))
+                w.uint32(560).uint32(m.unreadReplyToMyMessageCount);
             return w;
         };
 
@@ -30558,6 +30566,10 @@ export const proto = $root.proto = (() => {
                     }
                 case 69: {
                         m.contactAccountEncryptionAttestationType = r.int32();
+                        break;
+                    }
+                case 70: {
+                        m.unreadReplyToMyMessageCount = r.uint32();
                         break;
                     }
                 default:
@@ -30995,6 +31007,9 @@ export const proto = $root.proto = (() => {
                         break;
                 }
             }
+            if (d.unreadReplyToMyMessageCount != null) {
+                m.unreadReplyToMyMessageCount = d.unreadReplyToMyMessageCount >>> 0;
+            }
             return m;
         };
 
@@ -31381,6 +31396,11 @@ export const proto = $root.proto = (() => {
                 d.contactAccountEncryptionAttestationType = o.enums === String ? $root.proto.NonE2EEAttestation.AccountType[m.contactAccountEncryptionAttestationType] === undefined ? m.contactAccountEncryptionAttestationType : $root.proto.NonE2EEAttestation.AccountType[m.contactAccountEncryptionAttestationType] : m.contactAccountEncryptionAttestationType;
                 if (o.oneofs)
                     d._contactAccountEncryptionAttestationType = "contactAccountEncryptionAttestationType";
+            }
+            if (m.unreadReplyToMyMessageCount != null && m.hasOwnProperty("unreadReplyToMyMessageCount")) {
+                d.unreadReplyToMyMessageCount = m.unreadReplyToMyMessageCount;
+                if (o.oneofs)
+                    d._unreadReplyToMyMessageCount = "unreadReplyToMyMessageCount";
             }
             return d;
         };

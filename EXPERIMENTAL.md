@@ -362,3 +362,16 @@ Synced from live WhatsApp Web revision `1055751095` (up from `1050764678`):
 - **Additional `1055751095` proto additions:** `PollCreationMessage.Option.optionDatetime` (#3), `MusicMessage.lyrics` (#6, with `Line`/`WordOffset`), `InteractiveAnnotation.pixKey` (#9, `StatusPixKey` in `action` oneof), `MemberLabel.showAdminBadge` (#3), `StatusAttribution.statusTemplate` (#9, `StatusTemplate` in `attributionData` oneof), `ContextInfo.StatusAudienceMetadata.orgId` (#4, plus `AudienceType.CUSTOM_LIST`/`ORG`), `LinkPreviewMetadata.videoId` (#10), `DocumentMessage.qrUrl` (#23), `HistorySyncType.RECENT_CONVERSATIONS_ON_DEMAND` (#9), plus 26 updated enums and 27 newly generated message types.
 - **MEX query note:** All 44/45 `QueryIds` in `src/Types/Mex.js` match live persisted queries in `1055751095`; `QueryIds.ABOUT_STATUS` (`24535500086059408`, `xwa2_users_updates_since`) is no longer shipped in `1055751095` — prefer `fetchTextStatus` (`xwa2_text_status_list`, `24072923595647473`) for live text status reads.
 
+---
+
+## WhatsApp Web `1056020247` proto & View-Once reliability updates
+
+Synced from live WhatsApp Web revision `1056020247` (up from `1055751095`):
+
+- **Proto addition:** `Conversation.unreadReplyToMyMessageCount` (field `70`, `uint32`). Verified via exhaustive wire round-trip against live bundle `1056020247`. **Verification: Offline.**
+- **View-Once & media download fixes:**
+  - Added `extractViewOnceMessage(input)` in `src/Utils/messages.js` for multi-layer unwrapping (up to 5 layers including `ephemeralMessage -> viewOnceMessageV2 -> media`), direct `viewOnce: true` flags, `<unavailable type="view_once"/>` detection, and credential checks.
+  - Fixed `downloadMediaMessage` accepting `directPath`-only media (without hijacking to `thumbnail-link` when `thumbnailDirectPath` also exists) and extracting HTTP `404`/`410` from `Boom` (`error.output.statusCode`) so `ctx.reuploadRequest` executes properly.
+  - Hardened `getMediaKeys` to normalize `Uint8Array`, `{ type: 'Buffer', data }`, and plain numeric-key JSON objects before HKDF derivation.
+  - Added wire attributes `view_once` and `sender_drop` to excluded `<unavailable>` types in `src/Socket/messages-recv.js` (avoiding futile placeholder resend loops). **Verification: Offline.**
+

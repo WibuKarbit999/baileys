@@ -56,6 +56,16 @@ export function updateMessageWithReaction(msg: any, reaction: any): void;
 export function updateMessageWithPollUpdate(msg: any, update: any): void;
 export function updateMessageWithEventResponse(msg: any, update: any): void;
 export function aggregateMessageKeysNotFromMe(keys: any): any[];
+export type ViewOnceExtractionReason = 'not-view-once' | 'unavailable-fanout' | 'missing-media-credentials' | 'unsupported-media';
+export interface ExtractedViewOnceMessage {
+    isViewOnce: boolean;
+    type?: string;
+    media?: any;
+    content?: proto.IMessage;
+    downloadable: boolean;
+    reason?: ViewOnceExtractionReason;
+}
+export function extractViewOnceMessage(input: any): ExtractedViewOnceMessage;
 export function downloadMediaMessage(message: any, type: any, options: any, ctx: any): Promise<any>;
 export function assertMediaContent(content: any): any;
 export function shouldIncludeBizBinaryNode(message: any): boolean;
