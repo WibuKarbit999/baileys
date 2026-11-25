@@ -369,9 +369,5 @@ Synced from live WhatsApp Web revision `1055751095` (up from `1050764678`):
 Synced from live WhatsApp Web revision `1056020247` (up from `1055751095`):
 
 - **Proto addition:** `Conversation.unreadReplyToMyMessageCount` (field `70`, `uint32`). Verified via exhaustive wire round-trip against live bundle `1056020247`. **Verification: Offline.**
-- **View-Once & media download fixes:**
-  - Added `extractViewOnceMessage(input)` in `src/Utils/messages.js` for multi-layer unwrapping (up to 5 layers including `ephemeralMessage -> viewOnceMessageV2 -> media`), direct `viewOnce: true` flags, `<unavailable type="view_once"/>` detection, and credential checks.
-  - Fixed `downloadMediaMessage` accepting `directPath`-only media (without hijacking to `thumbnail-link` when `thumbnailDirectPath` also exists) and extracting HTTP `404`/`410` from `Boom` (`error.output.statusCode`) so `ctx.reuploadRequest` executes properly.
-  - Hardened `getMediaKeys` to normalize `Uint8Array`, `{ type: 'Buffer', data }`, and plain numeric-key JSON objects before HKDF derivation.
-  - Added wire attributes `view_once` and `sender_drop` to excluded `<unavailable>` types in `src/Socket/messages-recv.js` (avoiding futile placeholder resend loops). **Verification: Offline.**
+
 

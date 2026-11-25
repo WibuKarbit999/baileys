@@ -4584,35 +4584,6 @@ keduanya field untuk dikenali saat mulai berdatangan, bukan untuk dikirim.
 
 Di revisi WhatsApp Web `1055751095`–`1056020247`, enam jenis pesan terbaru ikut terpetakan penuh di protokol: `instantImageMessage` (field 135) dan `instantVideoMessage` (field 140) untuk foto/video instan ("Zap") dengan `mediatype` stanza `instant_image`/`instant_video`, `requestLocationMessage` (field 136) dan `requestLocationUpdateMessage` (field 138) untuk permintaan lokasi, `vpcRequestMessage` (field 139) untuk permintaan VPC, serta `paymentDetailsMessage` (field 141) untuk rincian transaksi pembayaran, ditambah field `Conversation.unreadReplyToMyMessageCount` (field 70) di `1056020247`.
 
-### Membaca Pesan View-Once (`extractViewOnceMessage`)
-
-Pesan sekali lihat (View-Once) bisa datang dengan pembungkus berlapis (misalnya `ephemeralMessage` → `viewOnceMessageV2` → `imageMessage` di chat pesan sementara), memakai `viewOnceMessageV2Extension` (audio/PTT), memakai flag `viewOnce: true` langsung di payload media tanpa pembungkus, atau dibatasi fanout-nya oleh WhatsApp pengirim (`<unavailable type="view_once"/>` / `quotedMessage` tanpa `mediaKey` & `directPath`).
-
-Gunakan `extractViewOnceMessage` untuk mengekstrak seluruh variasi tersebut sekaligus memeriksa apakah medianya benar-benar bisa diunduh:
-
-```js
-import { downloadMediaMessage, extractViewOnceMessage } from 'baileys'
-
-const vo = extractViewOnceMessage(msg) // menerima WAMessage, msg.message, atau quotedMessage
-if (!vo.isViewOnce) {
-  // bukan pesan view-once
-} else if (!vo.downloadable) {
-  // vo.reason: 'unavailable-fanout' | 'missing-media-credentials' | 'unsupported-media'
-  // (bila quotedMessage di-strip WA, coba ambil pesan asli dari store/cache berdasarkan key.id)
-} else {
-  const buffer = await downloadMediaMessage(
-    { key: msg.key, message: vo.content },
-    'buffer',
-    {},
-    { logger: sock.logger, reuploadRequest: sock.updateMediaMessage }
-  )
-  // vo.type: 'imageMessage' | 'instantImageMessage' | 'videoMessage' | 'instantVideoMessage' | 'ptvMessage' | 'audioMessage'
-}
-```
-
-> [!NOTE]
-> `downloadMediaMessage` sekarang mendukung media yang hanya memiliki `directPath` + `mediaKey` (tanpa `url`), menormalisasi `mediaKey` hasil serialisasi JSON di `getMediaKeys`, dan membaca kode status HTTP `404`/`410` dari `Boom` error (`error.output.statusCode`) agar permintaan `reuploadRequest` otomatis berjalan.
-
 ### 90 sisanya
 
 Yang ini membawa isinya. Kamu akan memakai segelintir terus-menerus dan tidak

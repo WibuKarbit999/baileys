@@ -1313,9 +1313,7 @@ export const makeMessagesRecvSocket = (config) => {
                         const unavailableType = unavailableNode?.attrs?.type;
                         if (unavailableType === 'bot_unavailable_fanout' ||
                             unavailableType === 'hosted_unavailable_fanout' ||
-                            unavailableType === 'view_once_unavailable_fanout' ||
-                            unavailableType === 'view_once' ||
-                            unavailableType === 'sender_drop') {
+                            unavailableType === 'view_once_unavailable_fanout') {
                             logger.debug({ msgId: msg.key.id, unavailableType }, 'skipping placeholder resend for excluded unavailable type');
                             acked = true;
                             return sendMessageAck(node);
