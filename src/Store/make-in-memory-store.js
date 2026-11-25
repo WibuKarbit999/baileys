@@ -4,7 +4,7 @@ import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { WAProto } from '../Types/index.js';
 import { LabelAssociationType } from '../Types/LabelAssociation.js';
 import { DEFAULT_CONNECTION_CONFIG } from '../Defaults/index.js';
-import { extractViewOnceMessage, md5, toNumber, updateMessageWithReceipt, updateMessageWithReaction } from '../Utils/index.js';
+import { md5, toNumber, updateMessageWithReceipt, updateMessageWithReaction } from '../Utils/index.js';
 import { jidDecode, jidNormalizedUser } from '../WABinary/index.js';
 import { makeOrderedDictionary } from './make-ordered-dictionary.js';
 import { ObjectRepository } from './object-repository.js';
@@ -171,13 +171,7 @@ export const makeInMemoryStore = (config = {}) => {
                     for (const msg of newMessages) {
                         const jid = jidNormalizedUser(msg.key.remoteJidAlt || msg.key.remoteJid);
                         const list = assertMessageList(jid);
-                        const existing = msg.key?.id ? list.get(msg.key.id) : undefined;
-                        const toStore = existing &&
-                            extractViewOnceMessage(existing).downloadable &&
-                            !extractViewOnceMessage(msg).downloadable
-                            ? { ...existing, ...msg, message: existing.message }
-                            : msg;
-                        list.upsert(toStore, 'append');
+                        list.upsert(msg, 'append');
                         if (type === 'notify' && !chats.get(jid)) {
                             ev.emit('chats.upsert', [
                                 {
@@ -192,35 +186,18 @@ export const makeInMemoryStore = (config = {}) => {
             }
         });
         ev.on('messages.update', updates => {
+            var _a;
             for (const { update, key } of updates) {
-                const primaryJid = jidNormalizedUser(key.remoteJidAlt || key.remoteJid);
-                const fallbackJid = jidNormalizedUser(key.remoteJid);
-                const list = messages[primaryJid] ||
-                    messages[fallbackJid] ||
-                    (key.id ? Object.values(messages).find(l => l === null || l === void 0 ? void 0 : l.get(key.id)) : undefined) ||
-                    assertMessageList(primaryJid);
-                const existing = key.id ? list.get(key.id) : undefined;
-                let safeUpdate = update;
-                if (safeUpdate && typeof safeUpdate === 'object') {
-                    if (safeUpdate.status) {
-                        const listStatus = existing === null || existing === void 0 ? void 0 : existing.status;
-                        if (listStatus && safeUpdate.status <= listStatus) {
-                            logger.debug({ update: safeUpdate, storedStatus: listStatus }, 'status stored newer then update');
-                            safeUpdate = { ...safeUpdate };
-                            delete safeUpdate.status;
-                            logger.debug({ update: safeUpdate }, 'new update object');
-                        }
-                    }
-                    if (existing &&
-                        safeUpdate.message !== undefined &&
-                        safeUpdate.message !== null &&
-                        extractViewOnceMessage(existing).downloadable &&
-                        !extractViewOnceMessage({ key: existing.key, message: safeUpdate.message }).downloadable) {
-                        safeUpdate = { ...safeUpdate };
-                        delete safeUpdate.message;
+                const list = assertMessageList(jidNormalizedUser(key.remoteJid));
+                if (update === null || update === void 0 ? void 0 : update.status) {
+                    const listStatus = (_a = list.get(key.id)) === null || _a === void 0 ? void 0 : _a.status;
+                    if (listStatus && (update === null || update === void 0 ? void 0 : update.status) <= listStatus) {
+                        logger.debug({ update, storedStatus: listStatus }, 'status stored newer then update');
+                        delete update.status;
+                        logger.debug({ update }, 'new update object');
                     }
                 }
-                const result = list.updateAssign(key.id, safeUpdate);
+                const result = list.updateAssign(key.id, update);
                 if (!result) {
                     logger.debug({ update }, 'got update for non-existent message');
                 }
@@ -373,23 +350,7 @@ export const makeInMemoryStore = (config = {}) => {
                 .all();
             return associations.map(({ labelId }) => labelId);
         },
-        loadMessage: async (jid, id) => {
-            if (!id) {
-                return undefined;
-            }
-            const normJid = jid ? jidNormalizedUser(jid) : '';
-            const direct = (normJid && messages[normJid]?.get(id)) || (jid && messages[jid]?.get(id));
-            if (direct) {
-                return direct;
-            }
-            for (const list of Object.values(messages)) {
-                const found = list?.get?.(id);
-                if (found) {
-                    return found;
-                }
-            }
-            return undefined;
-        },
+        loadMessage: async (jid, id) => { var _a; return (_a = messages[jid]) === null || _a === void 0 ? void 0 : _a.get(id); },
         mostRecentMessage: async (jid) => {
             var _a;
             const message = (_a = messages[jid]) === null || _a === void 0 ? void 0 : _a.array.slice(-1)[0];

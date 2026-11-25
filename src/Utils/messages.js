@@ -266,7 +266,7 @@ export const prepareWAMessageMedia = async (message, options) => {
     const requiresThumbnailComputation = (mediaType === 'image' || mediaType === 'video') && typeof uploadData['jpegThumbnail'] === 'undefined';
     const requiresWaveformProcessing = mediaType === 'audio' && uploadData.ptt === true && typeof uploadData.waveform === 'undefined';
     const requiresAudioBackground = options.backgroundColor != null && mediaType === 'audio' && uploadData.ptt === true;
-    const requiresOriginalForSomeProcessing = requiresDurationComputation || requiresThumbnailComputation || requiresWaveformProcessing;
+    const requiresOriginalForSomeProcessing = requiresDurationComputation || requiresThumbnailComputation;
     const { mediaKey, encFilePath, originalFilePath, fileEncSha256, fileSha256, fileLength } = await encryptedStream(uploadData.media, options.mediaTypeOverride || mediaType, {
         logger,
         saveOriginalFileIfRequired: requiresOriginalForSomeProcessing,
@@ -1856,9 +1856,7 @@ export const generateWAMessage = async (jid, content, options) => {
 export const getContentType = (content) => {
     if (content) {
         const keys = Object.keys(content);
-        const key = keys.find(k => (k === 'conversation' || k.includes('Message')) &&
-            k !== 'senderKeyDistributionMessage' &&
-            k !== 'fastRatchetKeySenderKeyDistributionMessage');
+        const key = keys.find(k => (k === 'conversation' || k.includes('Message')) && k !== 'senderKeyDistributionMessage');
         return key;
     }
 };
@@ -1872,7 +1870,6 @@ export const FUTURE_PROOF_MESSAGE_KEYS = [
     'botInvokeMessage',
     'botPlatformRegistrationSuccessMessage',
     'botTaskMessage',
-    'deviceSentMessage',
     'documentWithCaptionMessage',
     'editedMessage',
     'ephemeralMessage',
@@ -1919,7 +1916,7 @@ export const normalizeMessageContent = (content) => {
 
     for (let i = 0; i < 5; i++) {
         const inner = getFutureProofMessage(content);
-        if (!inner?.message) {
+        if (!inner) {
             break;
         }
         content = inner.message;
@@ -2077,7 +2074,7 @@ export const aggregateMessageKeysNotFromMe = (keys) => {
     }
     return Object.values(keyMap);
 };
-const REUPLOAD_REQUIRED_STATUS = [410, 404, 403];
+const REUPLOAD_REQUIRED_STATUS = [410, 404];
 const VIEW_ONCE_WRAPPER_KEYS = new Set([
     'viewOnceMessage',
     'viewOnceMessageV2',
@@ -2092,70 +2089,26 @@ const VIEW_ONCE_MEDIA_KEYS = new Set([
     'audioMessage'
 ]);
 
-const toMediaKeyBytes = (mediaKey) => {
+const hasNonEmptyMediaKey = (mediaKey) => {
     if (!mediaKey) {
-        return undefined;
+        return false;
     }
     if (typeof mediaKey === 'string') {
-        const cleaned = mediaKey.replace('data:;base64,', '').trim();
-        return cleaned ? Buffer.from(cleaned, 'base64') : undefined;
+        return mediaKey.length > 0;
     }
-    if (Buffer.isBuffer(mediaKey)) {
-        return mediaKey;
-    }
-    if (mediaKey instanceof Uint8Array) {
-        return Buffer.from(mediaKey.buffer, mediaKey.byteOffset, mediaKey.byteLength);
-    }
-    if (Array.isArray(mediaKey)) {
-        return Buffer.from(mediaKey);
+    if (Buffer.isBuffer(mediaKey) || mediaKey instanceof Uint8Array || Array.isArray(mediaKey)) {
+        return mediaKey.length > 0;
     }
     if (typeof mediaKey === 'object') {
         if (mediaKey.type === 'Buffer') {
-            if (Array.isArray(mediaKey.data)) {
-                return Buffer.from(mediaKey.data);
-            }
-            if (typeof mediaKey.data === 'string' && mediaKey.data.length > 0) {
-                return Buffer.from(mediaKey.data, 'base64');
+            if (Array.isArray(mediaKey.data) || typeof mediaKey.data === 'string') {
+                return mediaKey.data.length > 0;
             }
         }
         const keys = Object.keys(mediaKey);
-        if (keys.length > 0 && keys.every(k => /^\d+$/.test(k))) {
-            keys.sort((a, b) => Number(a) - Number(b));
-            const values = keys.map(k => mediaKey[k]);
-            if (values.every(v => typeof v === 'number')) {
-                return Buffer.from(values);
-            }
-        }
+        return keys.length > 0 && keys.every(k => /^\d+$/.test(k));
     }
-    return undefined;
-};
-
-const hasNonEmptyMediaKey = (mediaKey) => {
-    const bytes = toMediaKeyBytes(mediaKey);
-    if (!bytes || bytes.length === 0) {
-        return false;
-    }
-    return bytes.some(b => b !== 0);
-};
-
-const inferDirectMediaType = (obj) => {
-    if (!obj || typeof obj !== 'object') {
-        return undefined;
-    }
-    if (typeof obj.mtype === 'string' && VIEW_ONCE_MEDIA_KEYS.has(obj.mtype)) {
-        return obj.mtype;
-    }
-    const mime = typeof obj.mimetype === 'string' ? obj.mimetype.toLowerCase() : '';
-    if (mime.startsWith('image/')) {
-        return 'imageMessage';
-    }
-    if (mime.startsWith('video/')) {
-        return 'videoMessage';
-    }
-    if (mime.startsWith('audio/') || typeof obj.ptt === 'boolean') {
-        return 'audioMessage';
-    }
-    return undefined;
+    return false;
 };
 
 export const extractViewOnceMessage = (input) => {
@@ -2170,10 +2123,8 @@ export const extractViewOnceMessage = (input) => {
         };
     }
 
-    const hasWAMessageShape = Boolean(input.key && typeof input.key === 'object' && ('remoteJid' in input.key || 'id' in input.key || 'isViewOnce' in input.key));
-    const stubMarkedViewOnce = Array.isArray(input.messageStubParameters) &&
-        input.messageStubParameters.some(p => typeof p === 'string' && p.includes('view_once'));
-    if (hasWAMessageShape && (input.key?.isViewOnce || stubMarkedViewOnce) && !input.message) {
+    const hasWAMessageShape = 'key' in input && typeof input.key === 'object';
+    if (hasWAMessageShape && input.key?.isViewOnce && !input.message) {
         return {
             isViewOnce: true,
             type: undefined,
@@ -2185,9 +2136,9 @@ export const extractViewOnceMessage = (input) => {
     }
 
     let current = hasWAMessageShape ? input.message : input;
-    let sawViewOnceWrapper = Boolean(hasWAMessageShape && (input.key?.isViewOnce || stubMarkedViewOnce));
+    let sawViewOnceWrapper = Boolean(hasWAMessageShape && input.key?.isViewOnce);
 
-    for (let i = 0; i < 8 && current && typeof current === 'object'; i++) {
+    for (let i = 0; i < 5 && current && typeof current === 'object'; i++) {
         let unwrapped;
         for (const key of FUTURE_PROOF_MESSAGE_KEYS) {
             const wrapper = current[key];
@@ -2207,21 +2158,11 @@ export const extractViewOnceMessage = (input) => {
         current = unwrapped;
     }
 
-    let content = current && typeof current === 'object' ? current : undefined;
+    const content = current && typeof current === 'object' ? current : undefined;
     const contentType = content ? getContentType(content) : undefined;
     const isEmptyViewOnceWrapper = Boolean(contentType && VIEW_ONCE_WRAPPER_KEYS.has(contentType));
-    let type = isEmptyViewOnceWrapper ? undefined : contentType;
-    let media = type && content && typeof content[type] === 'object' ? content[type] : undefined;
-
-    if (!type && content && (content.viewOnce || sawViewOnceWrapper)) {
-        const directType = inferDirectMediaType(content);
-        if (directType) {
-            type = directType;
-            media = content;
-            content = { [directType]: content };
-        }
-    }
-
+    const type = isEmptyViewOnceWrapper ? undefined : contentType;
+    const media = type && content && typeof content[type] === 'object' ? content[type] : undefined;
     const isViewOnce = sawViewOnceWrapper || Boolean(media?.viewOnce);
 
     if (!isViewOnce) {
@@ -2283,8 +2224,6 @@ export const downloadMediaMessage = async (message, type, options, ctx) => {
     const result = await downloadMsg().catch(async (error) => {
         const statusCode = error?.output?.statusCode ?? error?.status ?? error?.response?.status;
         if (ctx &&
-            typeof ctx.reuploadRequest === 'function' &&
-            message?.key &&
             typeof statusCode === 'number' &&
             REUPLOAD_REQUIRED_STATUS.includes(statusCode)) {
             ctx.logger?.info?.({ key: message.key }, 'sending reupload media request...');
@@ -2297,8 +2236,7 @@ export const downloadMediaMessage = async (message, type, options, ctx) => {
     });
     return result;
     async function downloadMsg() {
-        const rawMessage = message?.message ?? message;
-        const mContent = extractMessageContent(rawMessage);
+        const mContent = extractMessageContent(message.message);
         if (!mContent) {
             throw new Boom('No message present', { statusCode: 400, data: message });
         }
