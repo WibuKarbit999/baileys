@@ -574,7 +574,7 @@ export const makeMessagesSocket = (config) => {
                     content: undefined
                 });
             }
-            if (isNeedMetaAttrs || innerMessage?.protocolMessage?.memberLabel || innerMessage?.protocolMessage?.editedMessage || innerMessage?.protocolMessage?.mediaNotifyMessage || innerMessage?.protocolMessage?.chatThemeSetting) {
+            if (isNeedMetaAttrs || innerMessage?.protocolMessage?.memberLabel || innerMessage?.protocolMessage?.editedMessage || innerMessage?.protocolMessage?.mediaNotifyMessage) {
                 extraAttrs['decrypt-fail'] = 'hide';
             }
 
@@ -630,7 +630,7 @@ export const makeMessagesSocket = (config) => {
                 const groupAddressingMode = additionalAttributes?.['addressing_mode'] || groupData?.addressingMode || 'lid';
                 const groupSenderIdentity = groupAddressingMode === 'lid' && meLid ? meLid : meId;
                 let toEncode = patched;
-                if (config.inlineSenderKeyDistribution !== false && isGroup && !patched.senderKeyDistributionMessage) {
+                if (config.inlineSenderKeyDistribution !== false && isGroup && !patched.senderKeyDistributionMessage && !innerMessage?.protocolMessage?.chatThemeSetting) {
                     try {
                         if (await signalRepository.hasSenderKey({ group: destinationJid, meId: groupSenderIdentity })) {
                             const inlineSkdm = await signalRepository.getSenderKeyDistributionMessage({
@@ -1080,6 +1080,9 @@ export const makeMessagesSocket = (config) => {
         }
         else if ((message.extendedTextMessage?.text || message.conversation || '').includes('://wa.me/p/')) {
             return 'productlink';
+        }
+        else if (message.protocolMessage?.type === proto.Message.ProtocolMessage.Type.CHAT_THEME_SETTING || message.protocolMessage?.chatThemeSetting) {
+            return 'chat_theme';
         }
         return '';
     };

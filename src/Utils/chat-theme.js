@@ -5,6 +5,8 @@ import { isJidGroup } from '../WABinary/index.js';
 import { normalizeMessageContent } from './messages.js';
 import { downloadContentFromMessage, encryptedStream, toBuffer } from './messages-media.js';
 
+export const CHAT_WALLPAPER_MEDIA_TYPE = 'chat-wallpaper-image';
+
 export const CHAT_WALLPAPER_KEYS = Object.freeze([
     'defaultWallpaper',
     'solidColor',
@@ -12,6 +14,114 @@ export const CHAT_WALLPAPER_KEYS = Object.freeze([
     'customImage',
     'animatedWallpaper'
 ]);
+
+export const CHAT_THEME_COLORS = Object.freeze({
+    Default: 'Default',
+    WhatsAppGreen: 'WhatsApp-Green',
+    PearlIndigo: 'Pearl-Indigo',
+    TyrianPurple: 'Tyrian-Purple',
+    SunsetOrange: 'Sunset-Orange',
+    MerinoTeal: 'Merino-Teal',
+    RoyalBlue: 'Royal-Blue',
+    DarkCerulean: 'Dark-Cerulean',
+    CharcoalGreen: 'Charcoal-Green',
+    PersianPlum: 'Persian-Plum',
+    DuneMono: 'Dune-Mono',
+    DefaultBlue: 'Default-Blue',
+    DefaultMono: 'Default-Mono',
+    SkyBlue: 'Sky-Blue',
+    Brown: 'Brown',
+    Cream: 'Cream',
+    Emerald: 'Emerald',
+    Lemon: 'Lemon',
+    Lime: 'Lime',
+    Pink: 'Pink',
+    Red: 'Red',
+    SunriseOrange: 'Sunrise-Orange',
+    WarmYellow: 'Warm-Yellow'
+});
+
+export const CHAT_TONAL_SCHEMES = Object.freeze({
+    WhatsAppGreen: 'WhatsApp-Green@Tonal',
+    PearlIndigo: 'Pearl-Indigo@Tonal',
+    TyrianPurple: 'Tyrian-Purple@Tonal',
+    SunsetOrange: 'Sunset-Orange@Tonal',
+    MerinoTeal: 'Merino-Teal@Tonal',
+    RoyalBlue: 'Royal-Blue@Tonal',
+    DarkCerulean: 'Dark-Cerulean@Tonal',
+    CharcoalGreen: 'Charcoal-Green@Tonal',
+    PersianPlum: 'Persian-Plum@Tonal',
+    DuneMono: 'Dune-Mono@Tonal',
+    DefaultBlue: 'Default-Blue@Tonal',
+    DefaultMono: 'Default-Mono@Tonal',
+    SkyBlue: 'Sky-Blue@Tonal',
+    Brown: 'Brown@Tonal',
+    Cream: 'Cream@Tonal',
+    Emerald: 'Emerald@Tonal',
+    Lemon: 'Lemon@Tonal',
+    Lime: 'Lime@Tonal',
+    Pink: 'Pink@Tonal',
+    Red: 'Red@Tonal',
+    SunriseOrange: 'Sunrise-Orange@Tonal',
+    WarmYellow: 'Warm-Yellow@Tonal'
+});
+
+export const CHAT_MINIMAL_SCHEMES = Object.freeze({
+    DefaultBlue: 'Default-Blue@Minimal',
+    DefaultMono: 'Default-Mono@Minimal',
+    SkyBlue: 'Sky-Blue@Minimal',
+    PearlIndigo: 'Pearl-Indigo@Minimal'
+});
+
+export const SOLID_WALLPAPER_PALETTE = Object.freeze([
+    Object.freeze({ name: 'Soft teal', light: '#C7E9EB', dark: '#2E7B80' }),
+    Object.freeze({ name: 'Soft mint', light: '#CCEBDC', dark: '#587D6B' }),
+    Object.freeze({ name: 'Sage', light: '#AED8C7', dark: '#39765D' }),
+    Object.freeze({ name: 'Pale teal', light: '#A9DBD8', dark: '#30726E' }),
+    Object.freeze({ name: 'Sky cyan', light: '#68D5D9', dark: '#0F6E72' }),
+    Object.freeze({ name: 'Muted cyan', light: '#6EC3D4', dark: '#297A8B' }),
+    Object.freeze({ name: 'Emerald', light: '#7ACBA5', dark: '#2E7553' }),
+    Object.freeze({ name: 'Soft green', light: '#73C780', dark: '#327C3D' }),
+    Object.freeze({ name: 'Olive', light: '#D0DEB1', dark: '#657C34' }),
+    Object.freeze({ name: 'Pale olive', light: '#DEE0B4', dark: '#767932' }),
+    Object.freeze({ name: 'Warm tan', light: '#E6DFA8', dark: '#686543' }),
+    Object.freeze({ name: 'Pale yellow', light: '#F7E9A8', dark: '#846F0C' }),
+    Object.freeze({ name: 'Yellow green', light: '#E6E365', dark: '#817E00' }),
+    Object.freeze({ name: 'Peach', light: '#FFD1A4', dark: '#A54733' }),
+    Object.freeze({ name: 'Blush', light: '#F2DAD5', dark: '#933F2E' }),
+    Object.freeze({ name: 'Rose blush', light: '#F2D5E1', dark: '#9D315E' }),
+    Object.freeze({ name: 'Lavender', light: '#D7D3EB', dark: '#5F4FAF' }),
+    Object.freeze({ name: 'Periwinkle', light: '#CBDAEC', dark: '#3F70AC' }),
+    Object.freeze({ name: 'Orchid', light: '#E5C0EB', dark: '#8F329E' }),
+    Object.freeze({ name: 'Baby pink', light: '#FBCAD2', dark: '#6E2A38' }),
+    Object.freeze({ name: 'Coral', light: '#FFA7A8', dark: '#63202B' }),
+    Object.freeze({ name: 'Salmon', light: '#FF8A8C', dark: '#4D0808' }),
+    Object.freeze({ name: 'Warm red', light: '#F56056', dark: '#5A1916' }),
+    Object.freeze({ name: 'Rose red', light: '#FF5978', dark: '#570F1D' }),
+    Object.freeze({ name: 'Terracotta', light: '#DC6E4F', dark: '#571800' }),
+    Object.freeze({ name: 'Dark plum', light: '#48324D', dark: '#36263A' }),
+    Object.freeze({ name: 'Gray brown', light: '#74676A', dark: '#2A2627' }),
+    Object.freeze({ name: 'Steel blue', light: '#7E90A3', dark: '#2C3136' }),
+    Object.freeze({ name: 'Indigo', light: '#7A77D9', dark: '#2C2A63' }),
+    Object.freeze({ name: 'Royal blue', light: '#2B5AA6', dark: '#122747' }),
+    Object.freeze({ name: 'Sky blue', light: '#219ED9', dark: '#00405E' }),
+    Object.freeze({ name: 'Deep teal', light: '#2293A4', dark: '#003C40' }),
+    Object.freeze({ name: 'Blue gray', light: '#55626F', dark: '#1E262F' }),
+    Object.freeze({ name: 'Light gray', light: '#C0C1C4', dark: '#4E4B4B' }),
+    Object.freeze({ name: 'Silver', light: '#D9DADE', dark: '#6D6D6E' }),
+    Object.freeze({ name: 'Charcoal', light: '#243640', dark: '#1B262D' }),
+    Object.freeze({ name: 'Default', light: '#F5F1EB', dark: '#0A0A0A' })
+]);
+
+const normalizePresetKey = (name) => String(name || '').trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const SOLID_PALETTE_INDEX = new Map(SOLID_WALLPAPER_PALETTE.map(entry => [normalizePresetKey(entry.name), entry]));
+
+export const findSolidWallpaperPreset = (name) => {
+    if (typeof name !== 'string' || !name.trim()) {
+        return null;
+    }
+    return SOLID_PALETTE_INDEX.get(normalizePresetKey(name)) ?? null;
+};
 
 const assertFiniteNumber = (value, label) => {
     const num = Number(value);
@@ -83,18 +193,43 @@ export const isMediaUploadInput = (value) => {
 
 const buildSolidColorWallpaper = (raw) => {
     const out = {};
-    const lightArgb = raw.backgroundLightArgb ?? (raw.backgroundLight !== undefined ? parseArgbColor(raw.backgroundLight) : undefined);
-    const darkArgb = raw.backgroundDarkArgb ?? (raw.backgroundDark !== undefined ? parseArgbColor(raw.backgroundDark) : undefined);
+    let presetEntry = null;
+    if (raw.preset !== undefined && raw.preset !== null) {
+        presetEntry = findSolidWallpaperPreset(raw.preset);
+        if (!presetEntry) {
+            throw new TypeError(`Unknown solid wallpaper preset: ${JSON.stringify(raw.preset)}`);
+        }
+    }
+
+    const singleColor = raw.color !== undefined && raw.color !== null ? parseArgbColor(raw.color) : undefined;
+    let lightArgb = raw.backgroundLightArgb !== undefined && raw.backgroundLightArgb !== null
+        ? parseArgbColor(raw.backgroundLightArgb)
+        : raw.backgroundLight !== undefined && raw.backgroundLight !== null
+            ? parseArgbColor(raw.backgroundLight)
+            : singleColor ?? (presetEntry ? parseArgbColor(presetEntry.light) : undefined);
+
+    let darkArgb = raw.backgroundDarkArgb !== undefined && raw.backgroundDarkArgb !== null
+        ? parseArgbColor(raw.backgroundDarkArgb)
+        : raw.backgroundDark !== undefined && raw.backgroundDark !== null
+            ? parseArgbColor(raw.backgroundDark)
+            : singleColor ?? (presetEntry ? parseArgbColor(presetEntry.dark) : undefined);
+
+    if (lightArgb !== undefined && darkArgb === undefined && raw.colorDark === undefined) {
+        darkArgb = lightArgb;
+    }
+    else if (darkArgb !== undefined && lightArgb === undefined && raw.colorLight === undefined) {
+        lightArgb = darkArgb;
+    }
 
     if (lightArgb !== undefined) {
-        out.backgroundLightArgb = parseArgbColor(lightArgb);
+        out.backgroundLightArgb = lightArgb;
     }
     else if (raw.colorLight !== undefined && raw.colorLight !== null) {
         out.colorLight = String(raw.colorLight);
     }
 
     if (darkArgb !== undefined) {
-        out.backgroundDarkArgb = parseArgbColor(darkArgb);
+        out.backgroundDarkArgb = darkArgb;
     }
     else if (raw.colorDark !== undefined && raw.colorDark !== null) {
         out.colorDark = String(raw.colorDark);
@@ -113,9 +248,12 @@ const buildSolidColorWallpaper = (raw) => {
     if (typeof raw.isDoodleEnabled === 'boolean') {
         out.isDoodleEnabled = raw.isDoodleEnabled;
     }
+    else if (lightArgb !== undefined || darkArgb !== undefined) {
+        out.isDoodleEnabled = true;
+    }
 
     if (Object.keys(out).length === 0) {
-        throw new TypeError('solidColor wallpaper requires at least one color or doodle property');
+        throw new TypeError('solidColor wallpaper requires at least one color, preset, or doodle property');
     }
     return out;
 };
@@ -124,8 +262,18 @@ export const buildChatWallpaper = (input) => {
     if (input === 'default') {
         return { key: 'defaultWallpaper', value: {} };
     }
+    if (typeof input === 'string') {
+        const preset = findSolidWallpaperPreset(input);
+        if (preset) {
+            return { key: 'solidColor', value: buildSolidColorWallpaper({ preset: preset.name }) };
+        }
+        if (/^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(input.trim())) {
+            return { key: 'solidColor', value: buildSolidColorWallpaper({ color: input }) };
+        }
+        throw new TypeError(`Unsupported wallpaper string: ${JSON.stringify(input)}`);
+    }
     if (!input || typeof input !== 'object') {
-        throw new TypeError('wallpaper input must be "default" or an object');
+        throw new TypeError('wallpaper input must be "default", a color/preset string, or an object');
     }
 
     const type = input.type;
@@ -138,7 +286,7 @@ export const buildChatWallpaper = (input) => {
         return { key: 'defaultWallpaper', value };
     }
 
-    if (type === 'solid' || type === 'solidColor' || 'solidColor' in input) {
+    if (type === 'solid' || type === 'solidColor' || 'solidColor' in input || 'preset' in input || 'color' in input || 'backgroundLight' in input || 'backgroundDark' in input || 'backgroundLightArgb' in input || 'backgroundDarkArgb' in input) {
         const src = 'solidColor' in input ? input.solidColor : input;
         return { key: 'solidColor', value: buildSolidColorWallpaper(src || {}) };
     }
@@ -164,11 +312,11 @@ export const buildChatWallpaper = (input) => {
             directPath: src.directPath,
             mediaKey: toBytes(src.mediaKey, 'customImage.mediaKey'),
             fileEncSha256: toBytes(src.fileEncSha256, 'customImage.fileEncSha256'),
-            fileSha256: toBytes(src.fileSha256, 'customImage.fileSha256')
+            fileSha256: toBytes(src.fileSha256, 'customImage.fileSha256'),
+            dimLevel: src.dimLevel !== undefined && src.dimLevel !== null
+                ? assertFiniteNumber(src.dimLevel, 'dimLevel')
+                : 0
         };
-        if (src.dimLevel !== undefined && src.dimLevel !== null) {
-            value.dimLevel = assertFiniteNumber(src.dimLevel, 'dimLevel');
-        }
         return { key: 'customImage', value };
     }
 
@@ -194,6 +342,7 @@ export const buildChatThemeSetting = (input) => {
 
     const settingTimestampMs = normalizeTimestampMs(input.settingTimestampMs);
     const clearTheme = Boolean(input.clearTheme);
+    const rawColorSchemeId = input.colorSchemeId ?? input.chatThemeId;
 
     const directWallpaperKeys = CHAT_WALLPAPER_KEYS.filter(key => input[key] !== undefined && input[key] !== null);
     if (directWallpaperKeys.length > 1) {
@@ -204,7 +353,7 @@ export const buildChatThemeSetting = (input) => {
     }
 
     if (clearTheme) {
-        if (input.colorSchemeId || directWallpaperKeys.length > 0 || input.wallpaper !== undefined) {
+        if (rawColorSchemeId || directWallpaperKeys.length > 0 || input.wallpaper !== undefined) {
             throw new TypeError('clearTheme cannot be combined with colorSchemeId or wallpaper fields');
         }
         return {
@@ -214,11 +363,11 @@ export const buildChatThemeSetting = (input) => {
     }
 
     const setting = { settingTimestampMs };
-    if (input.colorSchemeId !== undefined && input.colorSchemeId !== null) {
-        if (typeof input.colorSchemeId !== 'string' || input.colorSchemeId.length === 0) {
+    if (rawColorSchemeId !== undefined && rawColorSchemeId !== null) {
+        if (typeof rawColorSchemeId !== 'string' || rawColorSchemeId.length === 0) {
             throw new TypeError('colorSchemeId must be a non-empty string');
         }
-        setting.colorSchemeId = input.colorSchemeId;
+        setting.colorSchemeId = rawColorSchemeId;
     }
 
     if (input.wallpaper !== undefined && input.wallpaper !== null) {
@@ -340,30 +489,44 @@ export const uploadChatWallpaperImage = async (media, upload, options = {}) => {
         throw new TypeError('upload function (waUploadToServer) is required');
     }
 
-    const { encFilePath, mediaKey, fileEncSha256, fileSha256 } = await encryptedStream(media, 'image', {
+    const mediaType = options.mediaType ?? CHAT_WALLPAPER_MEDIA_TYPE;
+    const { encFilePath, mediaKey, fileEncSha256, fileSha256 } = await encryptedStream(media, mediaType, {
         logger: options.logger,
         opts: options.options
     });
 
     try {
-        const uploadResult = await upload(encFilePath, {
-            fileEncSha256B64: fileEncSha256.toString('base64'),
-            mediaType: 'image',
-            timeoutMs: options.mediaUploadTimeoutMs
-        });
+        let uploadResult;
+        try {
+            uploadResult = await upload(encFilePath, {
+                fileEncSha256B64: fileEncSha256.toString('base64'),
+                mediaType,
+                timeoutMs: options.mediaUploadTimeoutMs
+            });
+        }
+        catch (err) {
+            if (mediaType !== CHAT_WALLPAPER_MEDIA_TYPE) {
+                throw err;
+            }
+            options.logger?.debug?.({ err }, 'chat-wallpaper-image upload failed, retrying on /mms/image');
+            uploadResult = await upload(encFilePath, {
+                fileEncSha256B64: fileEncSha256.toString('base64'),
+                mediaType: 'image',
+                timeoutMs: options.mediaUploadTimeoutMs
+            });
+        }
         if (!uploadResult?.directPath) {
             throw new Boom('Wallpaper image upload did not return a directPath', { statusCode: 500, data: uploadResult });
         }
-        const customImage = {
+        return {
             directPath: uploadResult.directPath,
             mediaKey,
             fileEncSha256,
-            fileSha256
+            fileSha256,
+            dimLevel: options.dimLevel !== undefined && options.dimLevel !== null
+                ? assertFiniteNumber(options.dimLevel, 'dimLevel')
+                : 0
         };
-        if (options.dimLevel !== undefined && options.dimLevel !== null) {
-            customImage.dimLevel = assertFiniteNumber(options.dimLevel, 'dimLevel');
-        }
-        return customImage;
     }
     finally {
         await fs.unlink(encFilePath).catch(() => {});
@@ -389,7 +552,8 @@ export const downloadChatWallpaperImage = async (input, options = {}) => {
     if (!customImage?.directPath || !customImage?.mediaKey) {
         throw new Boom('Input does not contain a downloadable customImage wallpaper (directPath & mediaKey required)', { statusCode: 400 });
     }
-    const stream = await downloadContentFromMessage(customImage, 'image', options);
+    const mediaType = options.mediaType ?? CHAT_WALLPAPER_MEDIA_TYPE;
+    const stream = await downloadContentFromMessage(customImage, mediaType, options);
     if (options.asStream) {
         return stream;
     }

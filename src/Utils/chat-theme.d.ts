@@ -10,6 +10,12 @@ export type ChatWallpaperKey =
 
 export type ArgbColorInput = number | string;
 
+export interface SolidWallpaperPreset {
+    readonly name: string;
+    readonly light: string;
+    readonly dark: string;
+}
+
 export type ChatWallpaperMediaInput =
     | Buffer
     | Uint8Array
@@ -23,6 +29,8 @@ export interface ChatDefaultWallpaperInput {
 
 export interface ChatSolidColorWallpaperInput {
     type?: 'solid' | 'solidColor';
+    preset?: string;
+    color?: ArgbColorInput;
     backgroundLight?: ArgbColorInput;
     backgroundDark?: ArgbColorInput;
     backgroundLightArgb?: ArgbColorInput;
@@ -66,6 +74,7 @@ export interface ChatAnimatedWallpaperInput {
 
 export type ChatWallpaperInput =
     | 'default'
+    | string
     | ChatDefaultWallpaperInput
     | ChatSolidColorWallpaperInput
     | ChatStockImageWallpaperInput
@@ -86,6 +95,7 @@ export interface ChatThemeSettingInput {
     settingTimestampMs?: number;
     clearTheme?: boolean;
     colorSchemeId?: string;
+    chatThemeId?: string;
     wallpaper?: ChatWallpaperInput;
     defaultWallpaper?: proto.Message.IChatDefaultWallpaper;
     solidColor?: ChatSolidColorWallpaperInput;
@@ -150,10 +160,16 @@ export interface ChatThemeSocketHelpers {
     clearGroupTheme: (jid: string, options?: ChatThemeSendOptions) => Promise<ChatThemeSendResult>;
     setChatWallpaper: (jid: string, wallpaper: ChatWallpaperUploadableInput, options?: ChatThemeSendOptions) => Promise<ChatThemeSendResult>;
     setGroupWallpaper: (jid: string, wallpaper: ChatWallpaperUploadableInput, options?: ChatThemeSendOptions) => Promise<ChatThemeSendResult>;
-    downloadChatWallpaper: (input: any, options?: { host?: string; asStream?: boolean; options?: any }) => Promise<Buffer | Readable>;
+    downloadChatWallpaper: (input: any, options?: { host?: string; asStream?: boolean; mediaType?: string; options?: any }) => Promise<Buffer | Readable>;
 }
 
+export declare const CHAT_WALLPAPER_MEDIA_TYPE: 'chat-wallpaper-image';
 export declare const CHAT_WALLPAPER_KEYS: ReadonlyArray<ChatWallpaperKey>;
+export declare const CHAT_THEME_COLORS: Readonly<Record<string, string>>;
+export declare const CHAT_TONAL_SCHEMES: Readonly<Record<string, string>>;
+export declare const CHAT_MINIMAL_SCHEMES: Readonly<Record<string, string>>;
+export declare const SOLID_WALLPAPER_PALETTE: ReadonlyArray<SolidWallpaperPreset>;
+export declare function findSolidWallpaperPreset(name: string): SolidWallpaperPreset | null;
 export declare function parseArgbColor(value: ArgbColorInput): number;
 export declare function formatArgbColor(argb: ArgbColorInput, includeAlpha?: boolean): string;
 export declare function isMediaUploadInput(value: unknown): value is ChatWallpaperMediaInput;
@@ -177,10 +193,10 @@ export declare function extractChatThemeSetting(input: any): ExtractedChatThemeS
 export declare function uploadChatWallpaperImage(
     media: ChatWallpaperMediaInput,
     upload: (filePath: string, opts: { fileEncSha256B64: string; mediaType: string; timeoutMs?: number }) => Promise<{ directPath?: string }>,
-    options?: { logger?: any; options?: any; mediaUploadTimeoutMs?: number; dimLevel?: number }
+    options?: { logger?: any; options?: any; mediaUploadTimeoutMs?: number; dimLevel?: number; mediaType?: string }
 ): Promise<proto.Message.IChatCustomImageWallpaper>;
 export declare function downloadChatWallpaperImage(
     input: any,
-    options?: { host?: string; asStream?: boolean; options?: any }
+    options?: { host?: string; asStream?: boolean; mediaType?: string; options?: any }
 ): Promise<Buffer | Readable>;
 export declare function makeChatThemeHelpers(sock: any, config?: any): ChatThemeSocketHelpers;

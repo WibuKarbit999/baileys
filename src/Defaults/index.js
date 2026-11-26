@@ -114,7 +114,8 @@ export const MEDIA_PATH_MAP = {
     'product-catalog-image': '/product/image',
     'md-app-state': '',
     'md-msg-hist': '/mms/md-app-state',
-    'biz-cover-photo': '/pps/biz-cover-photo'
+    'biz-cover-photo': '/pps/biz-cover-photo',
+    'chat-wallpaper-image': '/mms/chat-wallpaper-image'
 };
 
 export const NEWSLETTER_MEDIA_PATH_MAP = {
@@ -151,6 +152,7 @@ export const MEDIA_HKDF_KEY_MAPPING = {
     'instant_image': 'Image',
     'instant_video': 'Video',
     'biz-cover-photo': 'Image',
+    'chat-wallpaper-image': 'Chat Wallpaper',
     location: 'Location',
     contact: 'Contact',
     'voip-token': 'Voip Token'
