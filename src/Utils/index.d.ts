@@ -44,3 +44,4 @@ export * from "./native-flow.js";
 export * from "./html-app.js";
 export * from "./html-multiplayer.js";
 export * from "./optional-media.js";
+export * from "./chat-theme.js";

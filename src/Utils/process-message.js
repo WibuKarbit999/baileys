@@ -4,6 +4,7 @@ import { WAMessageStubType } from '../Types/index.js';
 import { getContentType, normalizeMessageContent } from '../Utils/messages.js';
 import { areJidsSameUser, isHostedLidUser, isHostedPnUser, isJidBroadcast, isJidStatusBroadcast, isLidUser, jidDecode, jidEncode, jidNormalizedUser } from '../WABinary/index.js';
 import { aesDecryptGCM, hmacSign } from './crypto.js';
+import { extractChatThemeSetting } from './chat-theme.js';
 import { getKeyAuthor, toNumber } from './generics.js';
 import { downloadAndProcessHistorySyncNotification } from './history.js';
 import { buildMergedTcTokenIndexWrite, resolveTcTokenJid } from './tc-token-utils.js';
@@ -413,6 +414,21 @@ const processMessage = async (message, { shouldProcessHistoryMsg, placeholderRes
                         participantAlt: message.key.participantAlt,
                         messageTimestamp: Number(message.messageTimestamp)
                     });
+                }
+                break;
+            case proto.Message.ProtocolMessage.Type.CHAT_THEME_SETTING:
+                if (protocolMsg.chatThemeSetting) {
+                    const setting = extractChatThemeSetting(protocolMsg.chatThemeSetting);
+                    if (setting) {
+                        ev.emit('chat.theme.update', {
+                            jid: chat.id,
+                            participant: message.key.participant,
+                            participantAlt: message.key.participantAlt,
+                            fromMe: !!message.key.fromMe,
+                            messageTimestamp: Number(message.messageTimestamp),
+                            setting
+                        });
+                    }
                 }
                 break;
             case proto.Message.ProtocolMessage.Type.LID_MIGRATION_MAPPING_SYNC:

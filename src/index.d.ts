@@ -12,9 +12,10 @@ export * from "./MessageBuilder/metaai.js";
 export * from "./MessageBuilder/bot-signature.js";
 export * from "./Voip/index.js";
 import baseMakeWASocket from './Socket/index.js';
+import type { ChatThemeSocketHelpers } from './Utils/chat-theme.js';
 import type { NewsletterStatusFetchOptions, NewsletterStatusList, NewsletterStatusSendOptions, NewsletterStatusSendResult, NewsletterStatusStanzaResult, NewsletterStatusUpdatesFetchOptions } from './Utils/newsletter-status.js';
 type BaseWASocket = ReturnType<typeof baseMakeWASocket>;
-export type WASocket = BaseWASocket & {
+export type WASocket = BaseWASocket & ChatThemeSocketHelpers & {
     sendNewsletterStatus: (jid: string, content: any, options?: NewsletterStatusSendOptions) => Promise<NewsletterStatusSendResult>;
     sendNewsletterStatusReaction: (jid: string, parentServerId: string | number, reaction: string, options?: Pick<NewsletterStatusSendOptions, 'messageId' | 'ackTimeoutMs'>) => Promise<NewsletterStatusStanzaResult>;
     revokeNewsletterStatus: (jid: string, statusId: string, options?: Pick<NewsletterStatusSendOptions, 'ackTimeoutMs'>) => Promise<NewsletterStatusStanzaResult>;

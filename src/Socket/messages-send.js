@@ -574,7 +574,7 @@ export const makeMessagesSocket = (config) => {
                     content: undefined
                 });
             }
-            if (isNeedMetaAttrs || innerMessage?.protocolMessage?.memberLabel || innerMessage?.protocolMessage?.editedMessage || innerMessage?.protocolMessage?.mediaNotifyMessage) {
+            if (isNeedMetaAttrs || innerMessage?.protocolMessage?.memberLabel || innerMessage?.protocolMessage?.editedMessage || innerMessage?.protocolMessage?.mediaNotifyMessage || innerMessage?.protocolMessage?.chatThemeSetting) {
                 extraAttrs['decrypt-fail'] = 'hide';
             }
 

@@ -1,4 +1,5 @@
 import { DEFAULT_CONNECTION_CONFIG } from '../Defaults/index.js';
+import { makeChatThemeHelpers } from '../Utils/chat-theme.js';
 import { prepareModernMessageContent } from '../Utils/modern-messages.js';
 import { makeNewsletterStatusFetcher, makeNewsletterStatusUpdatesFetcher, makeNewsletterStatusReactionSender, makeNewsletterStatusRevokeSender, makeNewsletterStatusSender } from '../Utils/newsletter-status.js';
 import { bindVoiceRecognition } from '../Utils/voice-recognition.js';
@@ -18,6 +19,7 @@ const makeWASocket = (config) => {
     sock.revokeNewsletterStatus = makeNewsletterStatusRevokeSender(sock);
     sock.getNewsletterStatuses = makeNewsletterStatusFetcher(sock);
     sock.getNewsletterStatusUpdates = makeNewsletterStatusUpdatesFetcher(sock);
+    Object.assign(sock, makeChatThemeHelpers(sock, newConfig));
     if (newConfig.AnchorGuard) {
         import('@rexxhayanasi/elaina-anchorguard')
             .then(({ createAntiBugGuard }) => {
